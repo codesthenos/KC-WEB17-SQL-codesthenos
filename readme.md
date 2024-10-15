@@ -40,11 +40,11 @@ La práctica consiste en crear una **base de datos** y se entregaran dos documen
   - **director**
   - **sinopsis**
   - **copias**
+  - **prestada?**
 
 - **prestamo** con:
 
   - **fecha entrega**
   - **fecha devolucion**
-  - **prestada?**
 
 - _Consulta_ que muestre el **titulo** y el **numero de copias** de las **peliculas NO prestadas**
