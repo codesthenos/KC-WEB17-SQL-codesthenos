@@ -1,18 +1,21 @@
 create schema if not exists gruiz_videoclub;
 
 set schema 'gruiz_videoclub';
-/*
+
+/* Si descomentamos esto podemos correr el script entero de forma infinita sin errores (aunque se que este tipo de scripts no esta para eso, pero me ha ayudado a entender un poco mejor a entender lo de CASCADE)
 drop table if exists correspondencia;
 drop table if exists codigo_postal;
 drop table if exists poblacion;
 drop table if exists provincia;
 drop table if exists email;
 drop table if exists telefono;
-drop table if exists pelicula;
-drop table if exists copia;
 drop table if exists prestamo;
-drop table ix exists socio;
+drop table if exists copia;
+drop table if exists pelicula;
+drop table if exists socio;
 */
+
+/*Tablas sin foreing key constarints*/
 create table if not exists provincia (
 	id serial primary key,
 	provincia varchar(30) not null
@@ -76,45 +79,40 @@ create table if not exists pelicula (
   director varchar(70) not null,
   sinopsis text not null
 );
-/*
-,
-	constraint provincia_poblacion_fk foreign key (id_provincia) references provincia(id)
-,
-	constraint miembro_email_fk foreign key (dni_miembro) references miembro(dni)
-,
-	constraint miembro_telefono_fk foreign key (dni_miembro) references miembro(dni)
-,
-	constraint miembro_matricula_fk foreign key (dni_miembro) references miembro(dni)
-,
-	constraint miembro_profesor_fk foreign key (dni_miembro) references miembro(dni)
 
-alter table correspondencia
-add constraint miembro_correspondencia_fk
-foreign key (dni_miembro) references miembro(dni);
+/*Incluyo las constraints foreign key en todas las tablas*/
+alter table poblacion
+add constraint provincia_poblacion_fk
+foreign key (id_provincia) references provincia(id);
 
-alter table correspondencia
-add constraint poblacion_correspondencia_fk
+alter table codigo_postal
+add constraint poblacion_codigo_postal_fk
 foreign key (id_poblacion) references poblacion(id);
 
-create unique index index_nombre_provincia on provincia (lower(provincia));
+alter table correspondencia
+add constraint codigo_postal_correspondencia_fk
+foreign key (id_codigo_postal) references codigo_postal(id);
 
-alter table matricula
-add constraint curso_matricula_fk
-foreign key (id_curso) references curso(id);
+alter table correspondencia
+add constraint socio_correspondencia_fk
+foreign key (id_socio) references socio(id);
 
-alter table asignatura
-add constraint curso_asignatura_fk
-foreign key (id_curso) references curso(id);
+alter table email
+add constraint socio_email_fk
+foreign key (id_socio) references socio(id);
 
-alter table evaluacion
-add constraint matricula_evaluacion_fk
-foreign key (id_matricula) references matricula(id);
+alter table telefono
+add constraint socio_telefono_fk
+foreign key (id_socio) references socio(id);
 
-alter table evaluacion
-add constraint profesor_evaluacion_fk
-foreign key (id_profesor) references profesor(id);
+alter table prestamo
+add constraint socio_prestamo_fk
+foreign key (id_socio) references socio(id);
 
-alter table profesor
-add constraint asignatura_profesor_fk
-foreign key (id_asignatura) references asignatura(id);
-*/
+alter table prestamo
+add constraint copia_prestamo_fk
+foreign key (id_copia) references copia(id);
+
+alter table copia
+add constraint pelicula_copia_fk
+foreign key (id_pelicula) references pelicula(id);
