@@ -116,3 +116,58 @@ foreign key (id_copia) references copia(id);
 alter table copia
 add constraint pelicula_copia_fk
 foreign key (id_pelicula) references pelicula(id);
+--Poblamos la base de datos. Esto viene de 1 prompt que le he hecho a chat gpt
+-- Insert into provincia
+INSERT INTO provincia (provincia) VALUES ('Barcelona'), ('Madrid');
+
+-- Insert into poblacion
+INSERT INTO poblacion (poblacion, id_provincia) VALUES ('Badalona', 1), ('Alcobendas', 2);
+
+-- Insert into codigo_postal
+INSERT INTO codigo_postal (codigo_postal, id_poblacion) VALUES ('08912', 1), ('28100', 2);
+
+-- Insert into socio (members)
+INSERT INTO socio (dni, nombre, apellidos, fecha_nacimiento) 
+VALUES ('12345678A', 'Carlos', 'Ruiz', '1985-05-10'),
+       ('87654321B', 'Maria', 'Lopez', '1990-03-22');
+
+-- Insert into correspondencia (addresses for members)
+INSERT INTO correspondencia (id_socio, calle, numero, piso, id_codigo_postal) 
+VALUES (1, 'Gran Via', 123, '2B', 1),
+       (2, 'Calle Mayor', 45, '3A', 2);
+
+-- Insert into pelicula (films)
+INSERT INTO pelicula (titulo, genero, director, sinopsis) 
+VALUES ('Matrix', 'Sci-Fi', 'The Wachowskis', 'A hacker discovers the truth about reality.'),
+       ('Inception', 'Sci-Fi', 'Christopher Nolan', 'A thief who steals secrets through dream-sharing.'),
+       ('Interstellar', 'Sci-Fi', 'Christopher Nolan', 'A group of explorers travels through a wormhole.'),
+       ('Titanic', 'Romance', 'James Cameron', 'A love story set during the Titanic disaster.');
+
+-- Insert into copia (film copies)
+INSERT INTO copia (id_pelicula) 
+VALUES (1), (1), (1), -- 3 copies of Matrix
+       (2), (2),      -- 2 copies of Inception
+       (3),           -- 1 copy of Interstellar
+       (4), (4);      -- 2 copies of Titanic
+
+-- Insert into prestamo (loans)
+-- Loans that are still out (current loans)
+INSERT INTO prestamo (fecha_entrega, fecha_devolucion, id_socio, id_copia)
+VALUES ('2024-10-01', '2024-10-20', 1, 1), -- Loan for a Matrix copy (still out)
+       ('2024-10-05', '2024-10-22', 2, 4); -- Loan for an Inception copy (still out)
+
+-- Loans that have been returned (older loans)
+INSERT INTO prestamo (fecha_entrega, fecha_devolucion, id_socio, id_copia)
+VALUES ('2024-09-01', '2024-09-15', 1, 2), -- Returned Matrix copy
+       ('2024-09-10', '2024-09-25', 2, 5); -- Returned Inception copy
+
+--Consulta requerida. Esta tambien viene de 1 prompt en chat gpt
+SELECT p.titulo AS titulo_pelicula, 
+       COUNT(c.id) AS numero_copias_disponibles
+FROM pelicula p
+JOIN copia c ON p.id = c.id_pelicula
+LEFT JOIN prestamo pr ON c.id = pr.id_copia
+WHERE pr.id IS NULL -- Copies that have never been loaned
+   OR pr.fecha_devolucion < CURRENT_DATE -- Copies that have been returned
+GROUP BY p.titulo
+HAVING COUNT(c.id) > 0;
