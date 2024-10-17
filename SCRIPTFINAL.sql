@@ -15,9 +15,8 @@ drop table if exists pelicula;
 drop table if exists socio;
 */
 
--- Creacion de base de datos
+-- Creo tablas sin foreing key constraints
 
-/*Tablas sin foreing key constarints*/
 create table if not exists provincia (
 	id serial primary key,
 	provincia varchar(30) not null
@@ -82,7 +81,8 @@ create table if not exists pelicula (
   sinopsis text not null
 );
 
-/*Incluyo las constraints foreign key en todas las tablas*/
+-- Incluyo las constraints foreign key en todas las tablas
+
 alter table poblacion
 add constraint provincia_poblacion_fk
 foreign key (id_provincia) references provincia(id);
@@ -119,7 +119,7 @@ alter table copia
 add constraint pelicula_copia_fk
 foreign key (id_pelicula) references pelicula(id);
 
--- Creacion de la tabla tmp_videoclub con datos incluidos
+-- Uso script del profe para poblar mis tablas
 
 CREATE TABLE tmp_videoclub (
 	id_copia int4 NULL,
@@ -663,20 +663,52 @@ INSERT INTO tmp_videoclub (id_copia,fecha_alquiler_texto,dni,nombre,apellido_1,a
 	 (306,'2024-01-07','6810904Y','Hugo','Torres','Ferrer','hugo.torres.ferrer@gmail.com','649016903','47006','1994-06-05','50','1','Der.','Federico García Lorca','1Der.','La doncella','Thriller','Corea, década de 1930, durante la colonización japonesa. Una joven llamada Sookee es contratada como doncella de una rica mujer japonesa, Hideko, que vive recluida en una gran mansión bajo la influencia de un tirano. Sookee guarda un secreto y con la ayuda de un estafador que se hace pasar por un conde japonés, planea algo para Hideko.','Park Chan-wook','2024-01-07','2024-01-08'),
 	 (308,'2024-01-25','1638778M','Angel','Lorenzo','Caballero','angel.lorenzo.caballero@gmail.com','698073069','47008','2011-07-30','82','1','Izq.','Sol','1Izq.','El bazar de las sorpresas','Comedia','Alfred Kralik es el tímido jefe de vendedores de Matuschek y Compañía, una tienda de Budapest. Todas las mañanas, los empleados esperan juntos la llegada de su jefe, Hugo Matuschek. A pesar de su timidez, Alfred responde al anuncio de un periódico y mantiene un romance por carta. Su jefe decide contratar a una tal Klara Novak en contra de la opinión de Alfred. En el trabajo, Alfred discute constantemente con ella, sin sospechar que es su corresponsal secreta.','Ernst Lubitsch','2024-01-25',NULL);
 
+-- PUEBLO MIS TABLAS
 
--- Poblamos nuestras tablas usando la tabla tmp_videoclub
+insert into socio (dni, nombre, apellidos, fecha_nacimiento)
+select distinct dni, 
+	   nombre,
+	   concat(apellido_1, ' ', apellido_2) apellidos,
+	   cast(fecha_nacimiento as date) fecha_nacimiento
+from tmp_videoclub;
 
--- Borramos tabla tmp_videoclub
+insert into email (email, id_socio)
+select distinct tv.email, s.id
+from tmp_videoclub tv
+inner join socio s on tv.dni = s.dni;
+
+insert into telefono (telefono, id_socio)
+select distinct tv.telefono, s.id
+from tmp_videoclub tv
+inner join socio s on tv.dni = s.dni;
+
+insert into pelicula (titulo, genero, director, sinopsis)
+select distinct titulo, genero, director, sinopsis
+from tmp_videoclub;
+
+insert into copia (id, id_pelicula)
+select distinct tv.id_copia, p.id from tmp_videoclub tv
+inner join pelicula p on tv.titulo = p.titulo
+order by tv.id_copia;
+
+insert into prestamo (fecha_entrega, fecha_devolucion, id_socio, id_copia)
+select tv.fecha_alquiler, tv.fecha_devolucion, s.id, c.id
+from tmp_videoclub tv
+inner join copia c on tv.id_copia = c.id
+inner join socio s on tv.dni = s.dni;
+
+-- Borro la tabla creada con el script del profesor que ya no la necesito en la base de datos
+
+drop table tmp_videoclub;
 
 -- Hacemos consulta requerida
-/*
-SELECT p.titulo AS titulo_pelicula, 
-       COUNT(c.id) AS numero_copias_disponibles
-FROM pelicula p
-JOIN copia c ON p.id = c.id_pelicula
-LEFT JOIN prestamo pr ON c.id = pr.id_copia
-WHERE pr.id IS NULL -- Copies that have never been loaned
-   OR pr.fecha_devolucion < CURRENT_DATE -- Copies that have been returned
-GROUP BY p.titulo
-HAVING COUNT(c.id) > 0;
-*/
+
+select p.titulo as titulo_pelicula, 
+       count(c.id) as numero_copias_disponibles
+from pelicula p
+join copia c on p.id = c.id_pelicula
+left join prestamo pr on c.id = pr.id_copia
+where pr.id is null -- Copies that have never been loaned
+   or pr.fecha_devolucion is not null -- Copies that have been returned
+group by p.titulo
+having count(c.id) > 0;
