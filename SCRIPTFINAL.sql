@@ -15,7 +15,7 @@ drop table if exists pelicula;
 drop table if exists socio;
 */
 
--- Creo tablas sin foreing key constraints
+-- CREO ENTIDADES
 
 create table if not exists provincia (
 	id serial primary key,
@@ -81,7 +81,7 @@ create table if not exists pelicula (
   sinopsis text not null
 );
 
--- Incluyo las constraints foreign key en todas las tablas
+-- INCLUYO RELACIONES ENTRE ENTIDADES
 
 alter table poblacion
 add constraint provincia_poblacion_fk
@@ -119,7 +119,7 @@ alter table copia
 add constraint pelicula_copia_fk
 foreign key (id_pelicula) references pelicula(id);
 
--- Uso script del profe para poblar mis tablas
+-- TABLA AUXILIAR CORTESIA DEL PROFE
 
 CREATE TABLE tmp_videoclub (
 	id_copia int4 NULL,
@@ -663,7 +663,7 @@ INSERT INTO tmp_videoclub (id_copia,fecha_alquiler_texto,dni,nombre,apellido_1,a
 	 (306,'2024-01-07','6810904Y','Hugo','Torres','Ferrer','hugo.torres.ferrer@gmail.com','649016903','47006','1994-06-05','50','1','Der.','Federico García Lorca','1Der.','La doncella','Thriller','Corea, década de 1930, durante la colonización japonesa. Una joven llamada Sookee es contratada como doncella de una rica mujer japonesa, Hideko, que vive recluida en una gran mansión bajo la influencia de un tirano. Sookee guarda un secreto y con la ayuda de un estafador que se hace pasar por un conde japonés, planea algo para Hideko.','Park Chan-wook','2024-01-07','2024-01-08'),
 	 (308,'2024-01-25','1638778M','Angel','Lorenzo','Caballero','angel.lorenzo.caballero@gmail.com','698073069','47008','2011-07-30','82','1','Izq.','Sol','1Izq.','El bazar de las sorpresas','Comedia','Alfred Kralik es el tímido jefe de vendedores de Matuschek y Compañía, una tienda de Budapest. Todas las mañanas, los empleados esperan juntos la llegada de su jefe, Hugo Matuschek. A pesar de su timidez, Alfred responde al anuncio de un periódico y mantiene un romance por carta. Su jefe decide contratar a una tal Klara Novak en contra de la opinión de Alfred. En el trabajo, Alfred discute constantemente con ella, sin sospechar que es su corresponsal secreta.','Ernst Lubitsch','2024-01-25',NULL);
 
--- PUEBLO MIS TABLAS
+-- PUEBLO MIS TABLAS CON LA TABLA AUXILIAR
 
 insert into socio (dni, nombre, apellidos, fecha_nacimiento)
 select distinct dni, 
@@ -697,18 +697,18 @@ from tmp_videoclub tv
 inner join copia c on tv.id_copia = c.id
 inner join socio s on tv.dni = s.dni;
 
--- Borro la tabla creada con el script del profesor que ya no la necesito en la base de datos
+-- BORRO TABLA AUXILIAR
 
 drop table tmp_videoclub;
 
--- Hacemos consulta requerida
+-- CONSULTA
 
 select p.titulo as titulo_pelicula, 
        count(c.id) as numero_copias_disponibles
 from pelicula p
 join copia c on p.id = c.id_pelicula
 left join prestamo pr on c.id = pr.id_copia
-where pr.id is null -- Copies that have never been loaned
-   or pr.fecha_devolucion is not null -- Copies that have been returned
+where pr.id is null
+   or pr.fecha_devolucion is not null
 group by p.titulo
 having count(c.id) > 0;
