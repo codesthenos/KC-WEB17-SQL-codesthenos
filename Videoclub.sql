@@ -62,7 +62,7 @@ create table if not exists telefono (
 create table if not exists prestamo (
 	id serial primary key,
   fecha_entrega date not null,
-  fecha_devolucion date not null,
+  fecha_devolucion date,
   id_socio smallint not null,
   id_copia smallint not null
 );
@@ -74,7 +74,7 @@ create table if not exists copia (
 
 create table if not exists pelicula (
 	id serial primary key,
-	titulo varchar(50) not null,
+	titulo varchar(100) not null,
   genero varchar(20) not null,
   director varchar(70) not null,
   sinopsis text not null
