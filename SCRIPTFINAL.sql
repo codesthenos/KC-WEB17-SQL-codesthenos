@@ -703,12 +703,10 @@ drop table tmp_videoclub;
 
 -- CONSULTA
 
-select p.titulo as titulo_pelicula, 
-       count(c.id) as numero_copias_disponibles
+select p.titulo "titulo pelicula", count(distinct c.id) "numero copias disponibles"
 from pelicula p
-join copia c on p.id = c.id_pelicula
-left join prestamo pr on c.id = pr.id_copia
+inner join copia c on p.id = c.id_pelicula
+left join prestamo pr on c.id = pr.id_copia and pr.fecha_devolucion is null
 where pr.id is null
-   or pr.fecha_devolucion is not null
 group by p.titulo
-having count(c.id) > 0;
+having count(distinct c.id) > 0;
