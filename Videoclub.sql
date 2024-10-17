@@ -116,7 +116,8 @@ foreign key (id_copia) references copia(id);
 alter table copia
 add constraint pelicula_copia_fk
 foreign key (id_pelicula) references pelicula(id);
---Poblamos la base de datos. Esto viene de 1 prompt que le he hecho a chat gpt
+/* Esto viene de 1 prompt que le he hecho a chat gpt
+--Poblamos la base de datos.
 -- Insert into provincia
 INSERT INTO provincia (provincia) VALUES ('Barcelona'), ('Madrid');
 
@@ -160,8 +161,9 @@ VALUES ('2024-10-01', '2024-10-20', 1, 1), -- Loan for a Matrix copy (still out)
 INSERT INTO prestamo (fecha_entrega, fecha_devolucion, id_socio, id_copia)
 VALUES ('2024-09-01', '2024-09-15', 1, 2), -- Returned Matrix copy
        ('2024-09-10', '2024-09-25', 2, 5); -- Returned Inception copy
-
---Consulta requerida. Esta tambien viene de 1 prompt en chat gpt
+*/
+/* Esta tambien viene de 1 prompt en chat gpt
+--Consulta requerida.
 SELECT p.titulo AS titulo_pelicula, 
        COUNT(c.id) AS numero_copias_disponibles
 FROM pelicula p
@@ -171,3 +173,8 @@ WHERE pr.id IS NULL -- Copies that have never been loaned
    OR pr.fecha_devolucion < CURRENT_DATE -- Copies that have been returned
 GROUP BY p.titulo
 HAVING COUNT(c.id) > 0;
+*/
+/* Esta tambien viene de 1 prompt en chat gpt
+-- Borra todas las entradas de las tablas, resetea los serial, cascade para asegurar que las tablas con foreign keys son manejadas correctamente
+TRUNCATE TABLE correspondencia, codigo_postal, poblacion, provincia, email, telefono, prestamo, copia, pelicula, socio RESTART IDENTITY CASCADE;
+*/
