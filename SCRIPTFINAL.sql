@@ -76,9 +76,19 @@ create table if not exists copia (
 create table if not exists pelicula (
 	id serial primary key,
 	titulo varchar(100) not null,
-  genero varchar(20) not null,
-  director varchar(70) not null,
-  sinopsis text not null
+	sinopsis text not null,
+  id_genero smallint not null,
+  id_director smallint not null
+);
+
+create table if not exists genero (
+	id serial primary key,
+	genero varchar(20) not null
+);
+
+create table if not exists director (
+	id serial primary key,
+	director varchar(70) not null
 );
 
 -- INCLUYO RELACIONES ENTRE ENTIDADES
@@ -118,6 +128,14 @@ foreign key (id_copia) references copia(id);
 alter table copia
 add constraint pelicula_copia_fk
 foreign key (id_pelicula) references pelicula(id);
+
+alter table pelicula
+add constraint genero_pelicula_fk
+foreign key (id_genero) references genero(id);
+
+alter table pelicula
+add constraint director_pelicula_fk
+foreign key (id_director) references director(id);
 
 -- TABLA AUXILIAR CORTESIA DEL PROFE
 
@@ -682,9 +700,19 @@ select distinct tv.telefono, s.id
 from tmp_videoclub tv
 inner join socio s on tv.dni = s.dni;
 
-insert into pelicula (titulo, genero, director, sinopsis)
-select distinct titulo, genero, director, sinopsis
+insert into genero (genero)
+select distinct genero
 from tmp_videoclub;
+
+insert into director (director)
+select distinct director
+from tmp_videoclub;
+
+insert into pelicula (titulo, sinopsis, id_genero, id_director)
+select distinct tv.titulo, tv.sinopsis, g.id, d.id
+from tmp_videoclub tv
+inner join genero g on g.genero = tv.genero
+inner join director d on d.director = tv.director;
 
 insert into copia (id, id_pelicula)
 select distinct tv.id_copia, p.id from tmp_videoclub tv
